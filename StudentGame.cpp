@@ -12,13 +12,11 @@
 Game::Game(){
     // Adding to the ships vector
     ships.push_back(Ship(5, "Carrier", CARRIER));
-    ships.push_back(Ship(4, "Battleship", 66));
-    ships.push_back(Ship(3, "Destroyer", 68));
-    ships.push_back(Ship(3, "Submarine", 83));
-    ships.push_back(Ship(2, "Patrol Boot", 80));
-    //int s = player[1];
-   // std::cout << s;
-   std::cout << player[0][0];
+    ships.push_back(Ship(4, "Battleship", BATTLESHIP));
+    ships.push_back(Ship(3, "Destroyer", DESTROYER));
+    ships.push_back(Ship(3, "Submarine", SUBMARINE));
+    ships.push_back(Ship(2, "Patrol Boot", PATROLBOAT));
+        // Set up boards
 
 }
 
@@ -34,11 +32,6 @@ void Game::beginGame(){
     for(const Ship& s : ships){
         std::cout << "\t" << s << std::endl;
     }
-    std::cout << std::endl;
-
-    // Set up boards
-
-    std::cout << player;
     // Place Human Ships
     placeShips();
 
@@ -53,10 +46,13 @@ void Game::beginGame(){
  */
 void Game::placeShips(){
     // Loops through all 5 ships a player can place
+
     for(int i = 0; i < 5; i++){
         int x, y, int_dir;
         Direction dir;
         do{
+            std::cout << player << std::endl;
+            //std::cout << player << std::endl;
             std::cout << "Where do you wish to place the " << ships.at(i) << std::endl;
             std::cin >> x;
             std::cin >> y;
@@ -77,8 +73,7 @@ void Game::placeShips(){
             else if(int_dir == 0){
                 dir = HORIZONTAL;
             }
-
-        }while(place(x, y, dir, ships.at(i), player));
+        }while(!place(x, y, dir, ships.at(i), player));
     }
 }
 
@@ -86,6 +81,7 @@ void Game::placeShips(){
  * Handle the computer placing ships.
  */
 void Game::placeShipsPC(){
+    /*** TODO: USE SRAND AND SEE IT TO CLOCK, PLACE SHIPS RANDOMLY UNTIL WORKS***/
 }
 
 /**
@@ -93,12 +89,26 @@ void Game::placeShipsPC(){
  * at a particular spot with a particular direction.
  */
 bool Game::place(const int& x, const int& y, Direction d, const Ship& s, Board& b){
-    if(d = HORIZONTAL){
-        for(int i = 0; i < s.getSpaces(); i++){
-            //if(player[x][y])
+    if(d == HORIZONTAL){
+        for(int i = 0; i < s.getSpaces(); i++){ // Makes sure theres not a ship there
+            if(player[y][x+i] != 32) {
+                return false; /*** TODO: ADD AN ERROR MESSAGE ***/
+            }
         }
+        for(int i = 0; i < s.getSpaces(); i++){ // Places ship
+            player[y][x+i] = s.getChr();
+        }
+        return true;
     }else{
-
+        for(int i = 0; i < s.getSpaces(); i++){ // Makes sure theres not a ship there
+            if(player[y+i][x] != 32) {
+                return false; /*** TODO: ADD AN ERROR MESSAGE ***/
+            }
+        }
+        for(int i = 0; i < s.getSpaces(); i++){ // Places ship
+            player[y+i][x] = s.getChr();
+        }
+        return true;
     }
 }
 

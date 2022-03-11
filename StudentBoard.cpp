@@ -8,8 +8,9 @@ Board::Board(){
     // Creating grid
     grid = new int[WIDTH*HEIGHT];
     for(int i = 0; i < WIDTH*HEIGHT; i++){
-        grid[i] = 68; // Filling grid with ASCII of "SPACES"
+        grid[i] = 32; // Filling grid with ASCII of "SPACES"
     }
+
 }
 
 // What is this for?  takes in a board called other?
@@ -44,12 +45,10 @@ Board::Internal Board::operator[](int index){
 
 // Overloading stream operator so you can print board with std::cout << board
 std::ostream& operator<<(std::ostream& os, Board const& b){
-    char holder; // Needed as a placeholder for the ASCII value
     std::string value;
-    for(int i = 1; i <= HEIGHT; i++){
-        for(int j = 1; j <= WIDTH; j++){
-            //holder = putchar(b.grid[i*j-1]); // Holds ASCII value to print
-            os << " " << (char)b.grid[i*j-1];
+    for(int i = 0; i < HEIGHT; i++){
+        for(int j = 0; j < WIDTH; j++){
+            os << " " << (char)b.grid[j+(i*WIDTH)];
         }
         os << std::endl;
     }
