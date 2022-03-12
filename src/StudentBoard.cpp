@@ -45,16 +45,68 @@ Board::Internal Board::operator[](int index){
     return Board::Internal(grid+(index * WIDTH));
 }
 
-// Overloading stream operator so you can print board with std::cout << board
+/**
+ * Overloads stream operator so you can print the
+ * current board with formatting
+ *
+ * @param os current stream
+ * @param b current board
+ * @return returns stream
+ */
 std::ostream& operator<<(std::ostream& os, Board const& b){
     std::string value;
+
+    // Add space between board and previous line
+    os << std::endl;
+
+    // Display first line of header
+    os << "++===";
+    for (int i = 0; i < WIDTH; i++) os << "====";
+    if (WIDTH-1 > 9) os << "=";
+    os << "++" << std::endl;
+
+    // Display title
+    os << "||";
+    for (int i = 0; i < (WIDTH*2 - 8); i++) os << " ";
+    os << "B A T T L E S H I P";
+    for (int i = 0; i < (WIDTH*2 - 8); i++) os << " ";
+    if (WIDTH-1 > 9) os << " ";
+    os << "||" << std::endl;
+
+    // Display third line of header
+    os << "++===";
+    for (int i = 0; i < WIDTH; i++) os << "====";
+    if (WIDTH-1 > 9) os << "=";
+    os << "++" << std::endl;
+
+    // Display column numbers
+    os << "|   |";
+    for (int i = 0; i < WIDTH; i++) os << "\t" << i;
+    os << " |" << std::endl;
+
+    // Space separators
+    os << "|   |";
+    for (int i = 0; i < WIDTH; i++) os << " - -";
+    if (WIDTH-1 > 9) os << " ";
+    os << " |" << std::endl;
+
+    // Print each row
     for(int i = 0; i < HEIGHT; i++){
+        os << "| " << i << " |";
         for(int j = 0; j < WIDTH; j++){
-            os << " " << (char)b.grid[j+(i*WIDTH)];
+            os << "\t" << (char)b.grid[j+(i*WIDTH)];
         }
-        os << std::endl;
+        if (WIDTH-1 > 9) os << " ";
+        os << " |"<< std::endl;
     }
 
+    // Space separators
+    os << "+ - +";
+    for (int i = 0; i < WIDTH; i++) os << " - -";
+    if (WIDTH-1 > 9) os << " ";
+    os << " +" << std::endl;
+
+    // Return stream once finished
     return os;
 }
 
@@ -64,4 +116,5 @@ int Board::count() const{
 
 // Compares which board is winning sort of i think
 bool Board::operator< (const Board& other){
+
 }

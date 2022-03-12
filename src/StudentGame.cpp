@@ -6,6 +6,8 @@
 #include <random>
 #include <vector>
 
+
+// TODO: Something is off with the placement of ships for the PC, need to look it over
 /**
  * Constructor will create the ships vector and add ships to it.
  */
@@ -36,17 +38,17 @@ void Game::beginGame(){
                  "You are playing against an AI, good luck player!\n\n" <<
                  "The Pieces are:\n" << std::endl;
 
+    // List player ships (0-4)
     for(int i = 0; i < 5; i++) {
         std::cout << "\t" << ships.at(i) << std::endl;
     }
-//    for(const Ship& s : ships){
-//        std::cout << "\t" << s << std::endl;
-//    }
+
     // Place Human Ships
-    placeShips();
+//    placeShips();
 
     // Place Computer Ships
-//    placeShipsPC();
+    placeShipsPC();
+    std::cout << computer << std::endl;
 
 
     // Finally Runs the Game
@@ -56,12 +58,12 @@ void Game::beginGame(){
  * Handle the human placing ships.
  */
 void Game::placeShips(){
-    // Loops through all 5 ships a player can place
+    bool tryPlacement;
+    int x, y, int_dir;
+    Direction dir;
 
+    // Loops through all 5 ships a player can place
     for(int i = 0; i < 5; i++){
-        bool tryPlacement = false;
-        int x, y, int_dir;
-        Direction dir;
         do{
             std::cout << player << std::endl;
 
@@ -88,7 +90,7 @@ void Game::placeShips(){
             // placeShipsPC and don't want error messages to be sent then
             tryPlacement = place(x, y, dir, ships.at(i), player);
             if (!tryPlacement) std::cout << "ERROR: Not enough room or out of bounds, please try again" << std::endl;
-        }while(!tryPlacement);
+        } while (!tryPlacement);
     }
 }
 
@@ -101,14 +103,16 @@ void Game::placeShipsPC(){
     time_t t;
     std::srand((unsigned)time(&t));
 
+    bool tryPlacement;
+    int x, y, int_dir;
+    Direction dir;
+
     // Computer ships are from index 5 to 9
     for(int i = 5; i < 10; i++){
-        int x, y, int_dir;
-        Direction dir;
         do {
             // Set coords of ship
-            x = (std::rand() % 9);
-            y = (std::rand() % 9);
+            x = (std::rand() % WIDTH-1);
+            y = (std::rand() % HEIGHT-1);
 
             // Set direction of ship
             int_dir = std::rand() % 2;
@@ -116,7 +120,8 @@ void Game::placeShipsPC(){
             else dir = HORIZONTAL;
 
             // Pray that it works, if not, try again
-        } while(!place(x, y, dir, ships.at(i), computer));
+            tryPlacement = place(x, y, dir, ships.at(i), computer);
+        } while(!tryPlacement);
     }
 }
 
@@ -126,27 +131,19 @@ void Game::placeShipsPC(){
  * at a particular spot with a particular direction.
  */
 bool Game::place(const int& x, const int& y, Direction d, const Ship& s, Board& b){
+    // TEMP: THIS IS TO MAKE UP FOR THE TEMPORAARILY DISSABLED CHECKING IN STUDENTBOARD
+    if(x>WIDTH-1 || y>HEIGHT-1) return false;
     if(d == HORIZONTAL){
-        for(int i = 0; i < s.getSpaces(); i++){ // Makes sure theres not a ship there
-            if((b[y][x+i] != 32)||(x+i>9)) {
-//                std::cout << "ERROR: Not enough room or out of bounds, please try again" << std::endl;
-                return false;
-            }
-        }
-        for(int i = 0; i < s.getSpaces(); i++){ // Places ship
-            b[y][x+i] = s.getChr();
-        }
+        // Makes sure theres not a ship there and doesn't overlap border
+        for (int i = 0; i < s.getSpaces(); i++) if((b[y][x+i] != 32)||(x+i>(WIDTH-1))) return false;
+        // Place Ships
+        for (int i = 0; i < s.getSpaces(); i++) b[y][x+i] = s.getChr();
         return true;
-    }else{
-        for(int i = 0; i < s.getSpaces(); i++){ // Makes sure theres not a ship there
-            if((b[y+i][x] != 32)||(y+i>9)) {
-//                std::cout << "ERROR: Not enough room or out of bounds, please try again" << std::endl;
-                return false;
-            }
-        }
-        for(int i = 0; i < s.getSpaces(); i++){ // Places ship
-            b[y+i][x] = s.getChr();
-        }
+    } else {
+        // Makes sure theres not a ship there and doesn't overlap border
+        for (int i = 0; i < s.getSpaces(); i++) if((b[y+i][x] != 32)||(y+i>(HEIGHT-1))) return false;
+        // Place Ships
+        for (int i = 0; i < s.getSpaces(); i++) b[y+i][x] = s.getChr();
         return true;
     }
 }
