@@ -13,18 +13,18 @@
  */
 Game::Game(){
     // Adding player ships to the ships vector
-    ships.push_back(Ship(5, "Carrier", CARRIER));
-    ships.push_back(Ship(4, "Battleship", BATTLESHIP));
-    ships.push_back(Ship(3, "Destroyer", DESTROYER));
-    ships.push_back(Ship(3, "Submarine", SUBMARINE));
-    ships.push_back(Ship(2, "Patrol Boot", PATROLBOAT));
+    ships.emplace_back(5, "Carrier", CARRIER);
+    ships.emplace_back(4, "Battleship", BATTLESHIP);
+    ships.emplace_back(3, "Destroyer", DESTROYER);
+    ships.emplace_back(3, "Submarine", SUBMARINE);
+    ships.emplace_back(2, "Patrol Boot", PATROLBOAT);
 
     // Adding computer ships to the ships vector
-    ships.push_back(Ship(5, "Carrier", CARRIER));
-    ships.push_back(Ship(4, "Battleship", BATTLESHIP));
-    ships.push_back(Ship(3, "Destroyer", DESTROYER));
-    ships.push_back(Ship(3, "Submarine", SUBMARINE));
-    ships.push_back(Ship(2, "Patrol Boot", PATROLBOAT));
+    ships.emplace_back(5, "Carrier", CARRIER);
+    ships.emplace_back(4, "Battleship", BATTLESHIP);
+    ships.emplace_back(3, "Destroyer", DESTROYER);
+    ships.emplace_back(3, "Submarine", SUBMARINE);
+    ships.emplace_back(2, "Patrol Boot", PATROLBOAT);
     // Set up boards
 
 }
@@ -62,35 +62,9 @@ void Game::beginGame(){
  * Handle the human placing ships.
  */
 void Game::placeShips(){
-    // seed rand with current time
-    time_t t;
-    std::srand((unsigned)time(&t));
-
-    bool tryPlacement;
-    unsigned int x, y, int_dir;
-    Direction dir;
-
-    // Computer ships are from index 5 to 9
-    for(int i = 0; i < 5; i++){
-        do {
-            // Set coords of ship
-            x = (std::rand() % WIDTH);
-            y = (std::rand() % HEIGHT);
-
-            // Set direction of ship
-            int_dir = std::rand() % 2;
-            if (int_dir==1) dir = VERTICAL;
-            else dir = HORIZONTAL;
-
-            // Pray that it works, if not, try again
-            tryPlacement = place(x, y, dir, ships.at(i), player);
-        } while(!tryPlacement);
-    }
-    /**
     bool tryPlacement;
     int x, y, int_dir;
     Direction dir;
-
 
     // Loops through all 5 ships a player can place
     for(int i = 0; i < 5; i++){
@@ -121,31 +95,37 @@ void Game::placeShips(){
             tryPlacement = place(x, y, dir, ships.at(i), player);
             if (!tryPlacement) std::cout << "ERROR: Not enough room or out of bounds, please try again" << std::endl;
         } while (!tryPlacement);
-    }*/
+    }
 }
 
 /**
  * Handle the computer placing ships.
  */
 void Game::placeShipsPC(){
-    // seed rand with current time
-    time_t t;
-    std::srand((unsigned)time(&t));
+    // We found this article to help with the implementation of the uniform distribution:
+    //  https://spc.unige.ch/en/teaching/courses/algorithmes-probabilistes/random-numbers-week-1/
+
+    // Set up two uniform distributions with bounds appropriate to each use
+    // Seed each distribution with a random engine.
+    std::default_random_engine coordGen;
+    std::uniform_int_distribution<int> coordDist(0,9);
+
+    std::default_random_engine dirGen;
+    std::uniform_int_distribution<int> dirDist(0,1);
 
     bool tryPlacement;
-    unsigned int x, y, int_dir;
+    int x, y, int_dir;
     Direction dir;
 
     // Computer ships are from index 5 to 9
     for(int i = 5; i < 10; i++){
         do {
             // Set coords of ship
-            x = (std::rand() % WIDTH);
-            y = (std::rand() % HEIGHT);
+            x = coordDist(coordGen);
+            y = coordDist(coordGen);
 
             // Set direction of ship
-            int_dir = std::rand() % 2;
-            if (int_dir==1) dir = VERTICAL;
+            if (dirDist(dirGen)==1) dir = VERTICAL;
             else dir = HORIZONTAL;
 
             // Pray that it works, if not, try again
@@ -160,7 +140,6 @@ void Game::placeShipsPC(){
  * at a particular spot with a particular direction.
  */
 bool Game::place(const int& x, const int& y, Direction d, const Ship& s, Board& b){
-    // TEMP: THIS IS TO MAKE UP FOR THE TEMPORAARILY DISSABLED CHECKING IN STUDENTBOARD
     if(x>WIDTH-1 || y>HEIGHT-1) return false;
     if(d == HORIZONTAL){
         // Makes sure theres not a ship there and doesn't overlap border
@@ -181,6 +160,7 @@ bool Game::place(const int& x, const int& y, Direction d, const Ship& s, Board& 
  * Call human turn/computer turn until someone wins.
  */
 void Game::run(){
+
     // Prints the boads every turn
     bool endGame = false;
 
@@ -200,6 +180,7 @@ void Game::run(){
 
         computerTurn();
 
+        // TODO: make winning not scuffed
         /** NEED TO ACTUALLY MAKE IT SO THAT THERE ARE WINS OR DRAWS AND STUFF BETTER IF STATEMENT HERE **/
         if (player.count() == win)  {
             std::cout << "\n\n\n\n\nYOU LOSE\n\n\n\n";
@@ -213,12 +194,13 @@ void Game::run(){
         }
 
     } while (!endGame);
+    // Display both boards with visible function
 
 }
 
 void Game::humanTurn(){
     std::cout << "What coordinate would you like to attack: " << std::endl;
-    unsigned int x, y;
+    int x, y;
     while (!(std::cin>>x && std::cin>>y)) {
         std::cin.clear();
         std::cin.ignore(1000, '\n');
@@ -255,6 +237,38 @@ void Game::humanTurn(){
 }
 
 void Game::computerTurn(){
+    std::default_random_engine coordGen;
+    std::uniform_int_distribution<int> coordDist(0,9);
+
+    int x = coordDist(coordGen);
+    int y = coordDist(coordGen);
+
+    if (player[y][x] != 32) { // If not a space must have sunk a ship
+        int ship_index = -1;
+
+        // Gets the ship you just hit!
+        for (int i = 0; i < 5; i++) {
+            if (player[y][x] == ships.at(i).getChr()) {
+                ship_index = i;
+                break;
+            }
+        }
+
+        // If you find the ship
+        if (ship_index != -1) {
+            try {
+                ships.at(ship_index).addHit(); // Adds hit to ship
+            } catch (SunkShipException e) {
+                std::cout << "The Computer sank your " << ships.at(ship_index).getName() << std::endl;
+            }
+            player[y][x] = HIT; // Adds hit to board
+        } else { // You must have hit a MISS or an already HIT ship
+            std::cout << "The Computer hit you in the same spot! Sucks for them! Your turn now" << std::endl;
+        }
+
+    } else {
+        player[y][x] = MISS;
+    }
 }
 
 /**
