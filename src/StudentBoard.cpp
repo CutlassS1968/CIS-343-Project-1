@@ -13,7 +13,6 @@ Board::Board(){
 
 }
 
-// What is this for?  takes in a board called other?
 Board::Board(const Board& other){
 }
 
@@ -27,6 +26,7 @@ Board::~Board(){
 
 // Not sure how this ties into game will have to watch youtube
 void Board::setVisible(bool v){
+    visible = v;
 }
 
 int& Board::Internal::operator[](int index){
@@ -86,7 +86,7 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
 
     // Space separators
     os << "|   |";
-    for (int i = 0; i < WIDTH; i++) os << " - -";
+    for (int i = 0; i < WIDTH*2 - 1; i++) os << " - -";
     if (WIDTH-1 > 9) os << " ";
     os << " |" << std::endl;
 
@@ -94,7 +94,19 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
     for(int i = 0; i < HEIGHT; i++){
         os << "| " << i << " |";
         for(int j = 0; j < WIDTH; j++){
-            os << "\t" << (char)b.grid[j+(i*WIDTH)];
+            if (b.visible) { // If visible print the whole board
+                os << "\t" << (char)b.grid[j+(i*WIDTH)];
+            } else { // If not visible, exclude the ships
+                int tile = b.grid[j+(i*WIDTH)];
+
+                if (tile == CARRIER || tile == BATTLESHIP|| tile == DESTROYER
+                                    || tile == SUBMARINE || tile == PATROLBOAT) {
+                    os << "\t" << (char)32; // Print Empty Space
+                } else {
+                    os << "\t" << (char)b.grid[j+(i*WIDTH)]; // Printing the hits & misses
+                }
+            }
+
         }
         if (WIDTH-1 > 9) os << " ";
         os << " |"<< std::endl;
@@ -102,7 +114,7 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
 
     // Space separators
     os << "+ - +";
-    for (int i = 0; i < WIDTH; i++) os << " - -";
+    for (int i = 0; i < WIDTH*2 - 1; i++) os << " - -";
     if (WIDTH-1 > 9) os << " ";
     os << " +" << std::endl;
 
@@ -110,8 +122,13 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
     return os;
 }
 
-// Not sure probably keeping count of turns
+// Returns the amount of total hits on the board
 int Board::count() const{
+    int numOfHits = 0;
+    for(int i = 0; i < WIDTH*HEIGHT; i++){
+        if (grid[i] == HIT) numOfHits++;
+    }
+    return numOfHits;
 }
 
 // Compares which board is winning sort of i think
