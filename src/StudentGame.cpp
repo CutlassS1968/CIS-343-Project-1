@@ -4,14 +4,21 @@
 #include "Ship.hpp"
 #include <iostream>
 #include <random>
-#include <vector>
 #include <ctime>
 
-// TODO: Something is off with the placement of ships for the PC, need to look it over
+/**
+ * CIS 343 Project - BATTLESHIP
+ *
+ * @author Andreas Martinez
+ * @author Evan Johns
+ * @date 3/15/2022
+ */
+
+
 /**
  * Constructor will create the ships vector and add ships to it.
  */
-Game::Game(){
+Game::Game() {
     // Adding player ships to the ships vector
     ships.emplace_back(5, "Carrier", CARRIER);
     ships.emplace_back(4, "Battleship", BATTLESHIP);
@@ -25,37 +32,37 @@ Game::Game(){
     ships.emplace_back(3, "Destroyer", DESTROYER);
     ships.emplace_back(3, "Submarine", SUBMARINE);
     ships.emplace_back(2, "Patrol Boot", PATROLBOAT);
-    // Set up boards
-
 }
 
 /**
  * Begin Game let's user and then computer setup boards then calls run()
  */
-void Game::beginGame(){
+void Game::beginGame() {
 
+    // Display Title Card
     std::cout << "|------------------BATTLESHIP------------------|\n\n" <<
                  "You are playing against an AI, good luck player!\n\n" <<
                  "The Pieces are:\n" << std::endl;
 
     // List player ships (0-4)
-    for(int i = 0; i < 5; i++) {
-        std::cout << "\t" << ships.at(i) << std::endl;
-    }
+    for (int i = 0; i < 5; i++) std::cout << "\t" << ships.at(i) << std::endl;
 
     // Place Human Ships
     player.setVisible(true);
     placeShips();
-    //std::cout << player << std::endl;
+
     // Place Computer Ships
     computer.setVisible(true);
     placeShipsPC();
     std::cout << computer << std::endl;
     computer.setVisible(false);
-   // std::cout << computer << std::endl;
 
     // Finally Runs the Game
     run();
+
+    // Call destructors for computer and player
+    computer.~Board();
+    player.~Board();
 }
 
 /**
@@ -76,7 +83,7 @@ void Game::placeShips(){
             while (!(std::cin>>x && std::cin>>y)) {
                 std::cin.clear();
                 std::cin.ignore(1000, '\n');
-                std::cout << "Invalid input, Please enter values between 0 and 9" << std::endl;
+                std::cout << "Invalid input, Please enter a number" << std::endl;
             }
 
             // Get ship location, and ensure it is a valid direction
@@ -84,7 +91,7 @@ void Game::placeShips(){
             while (!(std::cin>>int_dir) || (int_dir!=0 && int_dir!=1)) {
                 std::cin.clear();
                 std::cin.ignore(1000, '\n');
-                std::cout << "Invalid Input, Please enter a 0 or 1" << std::endl;
+                std::cout << "Invalid Input, Please enter a number" << std::endl;
             }
 
             if (int_dir==1) dir = VERTICAL;
@@ -104,17 +111,18 @@ void Game::placeShips(){
 void Game::placeShipsPC(){
     // We found this article to help with the implementation of the uniform distribution:
     //  https://spc.unige.ch/en/teaching/courses/algorithmes-probabilistes/random-numbers-week-1/
-
     // Set up two uniform distributions with bounds appropriate to each use
     // Seed each distribution with a random engine.
-    std::default_random_engine coordGen;
+    unsigned seed = time(nullptr);
+
+    std::default_random_engine coordGen(seed);
     std::uniform_int_distribution<int> coordDist(0,9);
 
-    std::default_random_engine dirGen;
+    std::default_random_engine dirGen(seed);
     std::uniform_int_distribution<int> dirDist(0,1);
 
     bool tryPlacement;
-    int x, y, int_dir;
+    int x, y;
     Direction dir;
 
     // Computer ships are from index 5 to 9
@@ -161,7 +169,7 @@ bool Game::place(const int& x, const int& y, Direction d, const Ship& s, Board& 
  */
 void Game::run(){
 
-    // Prints the boads every turn
+    // Prints the boards every turn
     bool endGame = false;
 
     // Gets total number of spaces hit needed to win
@@ -175,41 +183,50 @@ void Game::run(){
         std::cout << computer << std::endl;
         std::cout << "Score: " << win-computer.count() << " to " << win-player.count() << std::endl;
 
-        // Do the human turn
+        // Do human turn
         humanTurn();
 
+        // Do computer turn
         computerTurn();
 
-        // TODO: make winning not scuffed
-        /** NEED TO ACTUALLY MAKE IT SO THAT THERE ARE WINS OR DRAWS AND STUFF BETTER IF STATEMENT HERE **/
-        if (player.count() == win)  {
-            std::cout << "\n\n\n\n\nYOU LOSE\n\n\n\n";
+
+        if (player.count() == win && computer.count() == win) { // If game is a draw
+            computer.setVisible(true);
+            std::cout << "\nEnemy Board:";
+            std::cout << computer << "\n" << std::endl;
+            std::cout << "THE GAME IS A DRAW!\n\n\n";
+            endGame = true;
+        } else if (player.count() == win) { // If player wins
+            computer.setVisible(true);
+            std::cout << "\nEnemy Board:";
+            std::cout << computer << "\n" << std::endl;
+            std::cout << "YOU LOSE!\n\n\n";
+            endGame = true;
+        } else if (computer.count() == win) { // If computer wins
+            computer.setVisible(true);
+            std::cout << "\nEnemy Board:";
+            std::cout << computer << "\n" << std::endl;
+            std::cout << "YOU WIN!\n\n\n";
             endGame = true;
         }
-
-        // If the person has won
-        if (computer.count() == win)  {
-            std::cout << "\n\n\n\n\nYOU WIN\n\n\n\n";
-            endGame = true;
-        }
-
     } while (!endGame);
-    // Display both boards with visible function
-
 }
 
+/**
+ * Gathers input from player and performs next attack
+ */
 void Game::humanTurn(){
     std::cout << "What coordinate would you like to attack: " << std::endl;
     int x, y;
-    while (!(std::cin>>x && std::cin>>y)) {
+    while (!(std::cin>>x && std::cin>>y) || ((x > WIDTH - 1 || x < 0) || (y > WIDTH - 1 || y < 0))) {
         std::cin.clear();
         std::cin.ignore(1000, '\n');
-        std::cout << "Invalid input, Please enter values between 0 and 9" << std::endl;
+        std::cout << "Invalid input, Please enter a valid number" << std::endl;
     }
 
-    if (computer[y][x] != 32) { // If not a space must have sunk a ship
+    // If not a space must have sunk a ship
+    if (computer[y][x] != 32) {
         int ship_index = -1;
-
         // Gets the ship you just hit!
         for (int i = 5; i < 10; i++) {
             if (computer[y][x] == ships.at(i).getChr()) {
@@ -231,17 +248,23 @@ void Game::humanTurn(){
         }
 
     } else {
+        // Sets board at coords to a miss
         computer[y][x] = MISS;
     }
 
 }
 
+/**
+ * Generates a random input from a uniform distribution and performs an attack
+ */
 void Game::computerTurn(){
-    std::default_random_engine coordGen;
-    std::uniform_int_distribution<int> coordDist(0,9);
+    // Set up random number generator
+    unsigned seed = time(nullptr);
+    std::default_random_engine gen(seed);
+    std::uniform_int_distribution<int> dis(0, 9);
 
-    int x = coordDist(coordGen);
-    int y = coordDist(coordGen);
+    int x = dis(gen);
+    int y = dis(gen);
 
     if (player[y][x] != 32) { // If not a space must have sunk a ship
         int ship_index = -1;

@@ -1,9 +1,12 @@
 #include "Board.hpp"
 #include "BoardValues.hpp"
-
 #include <algorithm>
 #include <iostream>
 
+/**
+ * This is a template for a Battleship game
+ * board, used for both the player and PC
+ */
 Board::Board(){
     // Creating grid
     grid = new int[WIDTH*HEIGHT];
@@ -19,29 +22,19 @@ Board::Board(const Board& other){
 Board& Board::operator=(const Board& other){
 }
 
-// Destructor - Free any memory back
 Board::~Board(){
     delete(grid);
 }
 
-// Not sure how this ties into game will have to watch youtube
 void Board::setVisible(bool v){
     visible = v;
 }
 
 int& Board::Internal::operator[](int index){
-    // Temporarily dissabled, error checking is handled in game
-//    if(index >= WIDTH){
-//        throw std::out_of_range(std::to_string(index) + " is greater value than or equal to grid width of " + std::to_string(WIDTH));
-//    }
     return _grid[index];
 }
 
 Board::Internal Board::operator[](int index){
-    // Temporarily dissabled, error checking is handled in game
-//    if(index >= HEIGHT){
-//        throw std::out_of_range(std::to_string(index) + " is greater value than or equal to grid height of " + std::to_string(HEIGHT));
-//    }
     return Board::Internal(grid+(index * WIDTH));
 }
 
@@ -81,12 +74,12 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
 
     // Display column numbers
     os << "|   |";
-    for (int i = 0; i < WIDTH; i++) os << "\t" << i;
+    for (int i = 0; i < WIDTH; i++) os << "   " << i;
     os << " |" << std::endl;
 
     // Space separators
     os << "|   |";
-    for (int i = 0; i < WIDTH*2 - 1; i++) os << " - -";
+    for (int i = 0; i < WIDTH; i++) os << " - -";
     if (WIDTH-1 > 9) os << " ";
     os << " |" << std::endl;
 
@@ -95,15 +88,15 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
         os << "| " << i << " |";
         for(int j = 0; j < WIDTH; j++){
             if (b.visible) { // If visible print the whole board
-                os << "\t" << (char)b.grid[j+(i*WIDTH)];
+                os << "   " << (char)b.grid[j+(i*WIDTH)];
             } else { // If not visible, exclude the ships
                 int tile = b.grid[j+(i*WIDTH)];
 
                 if (tile == CARRIER || tile == BATTLESHIP|| tile == DESTROYER
                                     || tile == SUBMARINE || tile == PATROLBOAT) {
-                    os << "\t" << (char)32; // Print Empty Space
+                    os << "   " << (char)32; // Print Empty Space
                 } else {
-                    os << "\t" << (char)b.grid[j+(i*WIDTH)]; // Printing the hits & misses
+                    os << "   " << (char)b.grid[j+(i*WIDTH)]; // Printing the hits & misses
                 }
             }
 
@@ -114,7 +107,7 @@ std::ostream& operator<<(std::ostream& os, Board const& b){
 
     // Space separators
     os << "+ - +";
-    for (int i = 0; i < WIDTH*2 - 1; i++) os << " - -";
+    for (int i = 0; i < WIDTH; i++) os << " - -";
     if (WIDTH-1 > 9) os << " ";
     os << " +" << std::endl;
 
@@ -131,7 +124,6 @@ int Board::count() const{
     return numOfHits;
 }
 
-// Compares which board is winning sort of i think
 bool Board::operator< (const Board& other){
 
 }
